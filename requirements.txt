@@ -1,29 +1,27 @@
 # Core
-aiogram==3.17.0
-python-dotenv==1.0.1
+aiogram
+python-dotenv
 
 # Database
-SQLAlchemy==2.0.36
-asyncpg==0.30.0
-alembic==1.14.0
+SQLAlchemy
+asyncpg
+alembic
 
 # Cache & Queue
-redis==5.2.1
-apscheduler==3.11.0
-
-# Payments
-# CloudPayments uses aiohttp (already installed above)
+redis
+apscheduler
 
 # HTTP
-aiohttp==3.11.11
-aiofiles==24.1.0
+aiohttp
+aiofiles
 
 # Server (for webhook on Render)
-fastapi==0.115.6
-uvicorn==0.34.0
+fastapi
+uvicorn
 
 # Image processing
+Pillow
 
 # Utils
-pydantic==2.10.4
-pydantic-settings==2.7.1
+pydantic
+pydantic-settings
