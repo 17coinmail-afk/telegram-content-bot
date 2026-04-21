@@ -68,10 +68,6 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down...")
     try:
-        await bot.delete_webhook(drop_pending_updates=True)
-    except Exception:
-        pass
-    try:
         await bot.session.close()
     except Exception:
         pass
