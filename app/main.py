@@ -31,15 +31,22 @@ async def lifespan(app: FastAPI):
     if missing:
         logger.warning(f"Missing env vars: {', '.join(missing)}")
     
-    await init_db()
+    try:
+        await init_db()
+        logger.info("Database initialized")
+    except Exception as e:
+        logger.error(f"Database init failed: {e}")
     
     # Set webhook
     if config.WEBHOOK_HOST:
-        await bot.set_webhook(
-            url=config.webhook_url,
-            drop_pending_updates=True,
-        )
-        logger.info(f"Webhook set to {config.webhook_url}")
+        try:
+            await bot.set_webhook(
+                url=config.webhook_url,
+                drop_pending_updates=True,
+            )
+            logger.info(f"Webhook set to {config.webhook_url}")
+        except Exception as e:
+            logger.error(f"Webhook setup failed: {e}")
     else:
         logger.info("WEBHOOK_HOST not set — webhook not configured")
     
@@ -47,8 +54,14 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("Shutting down...")
-    await bot.delete_webhook(drop_pending_updates=True)
-    await bot.session.close()
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+    except Exception:
+        pass
+    try:
+        await bot.session.close()
+    except Exception:
+        pass
 
 
 app = FastAPI(lifespan=lifespan)
@@ -63,7 +76,7 @@ async def telegram_webhook(request: Request):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok", "bot": (await bot.get_me()).username}
+    return {"status": "ok"}
 
 
 # For local development with polling
