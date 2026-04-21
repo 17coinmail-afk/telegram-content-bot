@@ -71,7 +71,7 @@ async def cmd_pending(message: Message):
     for p in payments:
         user_result = await session.execute(select(User).where(User.id == p.user_id))
         user = user_result.scalar_one_or_none()
-        username = f"@{user.username}" if user and user.username else f"ID {user.telegram_id if user else '?'}}"
+        username = f"@{user.username}" if user and user.username else f"ID {user.telegram_id if user else '?'}"
         text += f"ID: <code>{p.id}</code> | {p.amount} ₽ | {username}\nКоммент: <code>{p.sbp_comment or '—'}</code>\n\n"
     
     await message.answer(text)
