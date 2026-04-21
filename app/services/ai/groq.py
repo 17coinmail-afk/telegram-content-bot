@@ -48,7 +48,7 @@ async def generate_post_text(topic_name: str, description: str | None, tone: str
     }
     
     payload = {
-        "model": "qwen-2.5-32b",
+        "model": "llama-3.3-70b-versatile",
         "messages": [
             {"role": "system", "content": "Ты — опытный контент-мейкер для Telegram. Пишешь цепляющие, полезные посты на русском языке."},
             {"role": "user", "content": prompt}
