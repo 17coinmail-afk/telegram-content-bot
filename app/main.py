@@ -9,6 +9,7 @@ from app.config import config
 from app.bot import bot, dp
 from app.database.session import init_db
 from app.handlers import start, topics, content, subscription, channels, admin
+from aiogram.types import ErrorEvent
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +22,18 @@ dp.include_router(content.router)
 dp.include_router(subscription.router)
 dp.include_router(channels.router)
 dp.include_router(admin.router)
+
+
+@dp.error()
+async def error_handler(event: ErrorEvent):
+    logger.exception("Handler error: %s", event.exception)
+    try:
+        await bot.send_message(
+            chat_id=757179699,
+            text=f"❌ <b>Bot Error</b>\n<code>{str(event.exception)[:500]}</code>",
+        )
+    except Exception:
+        pass
 
 
 @asynccontextmanager
