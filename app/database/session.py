@@ -1,7 +1,18 @@
+import ssl
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from app.config import config
 
-engine = create_async_engine(config.DATABASE_URL, echo=False, future=True)
+# Render PostgreSQL uses self-signed SSL certs
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
+
+engine = create_async_engine(
+    config.DATABASE_URL,
+    connect_args={"ssl": ssl_context},
+    echo=False,
+    future=True,
+)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
