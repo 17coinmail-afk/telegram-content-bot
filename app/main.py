@@ -69,9 +69,14 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post(config.WEBHOOK_PATH)
 async def telegram_webhook(request: Request):
-    update = types.Update.model_validate(await request.json())
-    await dp.feed_update(bot, update)
-    return {"ok": True}
+    try:
+        data = await request.json()
+        update = types.Update.model_validate(data)
+        await dp.feed_update(bot, update)
+        return {"ok": True}
+    except Exception as e:
+        logger.exception("Webhook error: %s", e)
+        return {"ok": False, "error": str(e), "type": type(e).__name__}
 
 
 @app.get("/health")
