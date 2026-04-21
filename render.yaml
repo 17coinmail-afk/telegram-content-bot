@@ -2,7 +2,7 @@ services:
   - type: web
     name: telegram-content-bot
     runtime: docker
-    plan: standard
+    plan: starter
     envVars:
       - key: BOT_TOKEN
         sync: false
@@ -35,6 +35,14 @@ services:
         value: "50"
       - key: SUBSCRIPTION_PRICE
         value: "990"
+      - key: ADMIN_ID
+        value: "757179699"
+      - key: SBP_PHONE
+        value: "+79994206101"
+      - key: SBP_BANK
+        value: "ОЗОН"
+      - key: SBP_NAME
+        value: "Роман"
     healthCheckPath: /health
 
   - type: redis
