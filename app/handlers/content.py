@@ -56,19 +56,21 @@ async def start_generation(callback: CallbackQuery):
         return
     
     # Show topic selection for generation
-    from app.keyboards.inline import topics_list
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+    buttons = [
+        [InlineKeyboardButton(text=f"📌 {t.name}", callback_data=f"content:topic:{t.id}")]
+        for t in topics
+    ]
+    buttons.append([InlineKeyboardButton(text="« Назад", callback_data="menu:main")])
     await callback.message.edit_text(
         "Выбери тему для генерации поста:",
-        reply_markup=topics_list(topics),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
     )
 
 
-@router.callback_query(F.data.startswith("topic:select:"))
+@router.callback_query(F.data.startswith("content:topic:"))
 async def generate_for_topic(callback: CallbackQuery, bot: Bot):
-    # This is also called from topic list — we need to distinguish context
-    # For simplicity, if message has 'Выбери тему для генерации' text, we generate
-    if callback.message.text and "генерации поста" in callback.message.text:
-        topic_id = int(callback.data.split(":")[2])
+    topic_id = int(callback.data.split(":")[2])
         
         await callback.message.edit_text("⏳ Генерирую пост... Это займёт 5-10 секунд.")
         
