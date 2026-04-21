@@ -3,7 +3,7 @@ services:
     name: telegram-content-bot
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --no-cache-dir -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port 8000
     envVars:
       - key: BOT_TOKEN
