@@ -68,6 +68,12 @@ async def start_generation(callback: CallbackQuery):
 
 
 @router.callback_query(lambda c: c.data and c.data.startswith("content:topic:"))
+
+
+@router.callback_query(F.data == "content:test:123")
+async def test_content_handler(callback: CallbackQuery):
+    await callback.answer("✅ Content router works!")
+    await callback.message.answer("Content router is active.")
 async def generate_for_topic(callback: CallbackQuery, bot: Bot):
     topic_id = int(callback.data.split(":")[2])
     
