@@ -130,6 +130,12 @@ async def add_topic_length(message: Message, state: FSMContext):
 async def select_topic(callback: CallbackQuery):
     topic_id = int(callback.data.split(":")[2])
     
+    # If from content generation flow, generate post instead of showing topic menu
+    if callback.message.text and "генерации поста" in callback.message.text:
+        from app.handlers.content import generate_for_topic
+        await generate_for_topic(callback)
+        return
+    
     async with async_session() as session:
         result = await session.execute(
             select(Topic).where(Topic.id == topic_id)
