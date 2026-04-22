@@ -74,7 +74,7 @@ async def start_generation(callback: CallbackQuery):
 async def test_content_handler(callback: CallbackQuery):
     await callback.answer("✅ Content router works!")
     await callback.message.answer("Content router is active.")
-async def generate_for_topic(callback: CallbackQuery, bot: Bot):
+async def generate_for_topic(callback: CallbackQuery):
     topic_id = int(callback.data.split(":")[2])
     
     await callback.message.edit_text("⏳ Генерирую пост... Это займёт 5-10 секунд.")
