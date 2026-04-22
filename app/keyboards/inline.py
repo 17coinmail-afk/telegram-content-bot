@@ -10,9 +10,9 @@ def main_menu() -> InlineKeyboardMarkup:
     ])
 
 
-def topics_list(topics: list) -> InlineKeyboardMarkup:
+def topics_list(topics: list, prefix: str = "topic:select") -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton(text=f"📌 {t.name}", callback_data=f"topic:select:{t.id}")]
+        [InlineKeyboardButton(text=f"📌 {t.name}", callback_data=f"{prefix}:{t.id}")]
         for t in topics
     ]
     buttons.append([InlineKeyboardButton(text="➕ Добавить тему", callback_data="topic:add")])

@@ -56,18 +56,11 @@ async def start_generation(callback: CallbackQuery):
         return
     
     # Show topic selection for generation
-    buttons = [
-        [InlineKeyboardButton(text=f"📌 {t.name}", callback_data=f"content:topic:{t.id}")]
-        for t in topics
-    ]
-    buttons.append([InlineKeyboardButton(text="« Назад", callback_data="menu:main")])
+    from app.keyboards.inline import topics_list
     await callback.message.edit_text(
         "Выбери тему для генерации поста:",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        reply_markup=topics_list(topics, prefix="topic:generate"),
     )
-
-
-@router.callback_query(lambda c: c.data and c.data.startswith("content:topic:"))
 
 
 @router.callback_query(F.data == "content:test:123")
