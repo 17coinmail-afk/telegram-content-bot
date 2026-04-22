@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from aiogram import Router, F, Bot
-from aiogram.types import CallbackQuery, Message, BufferedInputFile
+from aiogram.types import CallbackQuery, Message, BufferedInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from sqlalchemy import select, func
 from app.database.session import async_session
 from app.database.models import User, Topic, Post, Channel
@@ -56,7 +56,6 @@ async def start_generation(callback: CallbackQuery):
         return
     
     # Show topic selection for generation
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
     buttons = [
         [InlineKeyboardButton(text=f"📌 {t.name}", callback_data=f"content:topic:{t.id}")]
         for t in topics
@@ -71,81 +70,81 @@ async def start_generation(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("content:topic:"))
 async def generate_for_topic(callback: CallbackQuery, bot: Bot):
     topic_id = int(callback.data.split(":")[2])
+    
+    await callback.message.edit_text("⏳ Генерирую пост... Это займёт 5-10 секунд.")
+    
+    async with async_session() as session:
+        result = await session.execute(
+            select(Topic).where(Topic.id == topic_id)
+        )
+        topic = result.scalar_one()
         
-        await callback.message.edit_text("⏳ Генерирую пост... Это займёт 5-10 секунд.")
+        # Generate text
+        text = await generate_post_text(
+            topic.name,
+            topic.description,
+            topic.tone,
+            topic.post_length,
+        )
         
-        async with async_session() as session:
-            result = await session.execute(
-                select(Topic).where(Topic.id == topic_id)
-            )
-            topic = result.scalar_one()
-            
-            # Generate text
-            text = await generate_post_text(
-                topic.name,
-                topic.description,
-                topic.tone,
-                topic.post_length,
-            )
-            
-            # Search image
-            image_url = await search_image(topic.name)
-            
-            # Generate image with text overlay
-            image_bytes = None
-            if image_url:
-                try:
-                    # Extract first line as title for overlay
-                    title = text.split('\n')[0][:80]
-                    image_bytes = await generate_post_image(image_url, title)
-                except Exception:
-                    image_bytes = None
-            
-            # Create post record
-            post = Post(
-                user_id=topic.user_id,
-                topic_id=topic.id,
-                text=text,
-                image_url=image_url,
-                status="draft",
-            )
-            session.add(post)
-            
-            # Increment daily counter
-            user_result = await session.execute(
-                select(User).where(User.id == topic.user_id)
-            )
-            user = user_result.scalar_one()
-            user.posts_today += 1
-            
-            await session.commit()
-            await session.refresh(post)
+        # Search image
+        image_url = await search_image(topic.name)
         
-        # Show preview
-        preview_text = f"✨ <b>Превью поста</b>\n\n{text[:800]}"
-        if len(text) > 800:
-            preview_text += "\n\n<i>... (текст обрезан в превью)</i>"
+        # Generate image with text overlay
+        image_bytes = None
+        if image_url:
+            try:
+                # Extract first line as title for overlay
+                title = text.split('\n')[0][:80]
+                image_bytes = await generate_post_image(image_url, title)
+            except Exception:
+                image_bytes = None
         
-        if image_bytes:
-            await callback.message.delete()
-            photo = BufferedInputFile(image_bytes, filename="preview.jpg")
-            await callback.message.answer_photo(
-                photo=photo,
-                caption=preview_text,
-                reply_markup=content_preview(post.id),
-            )
-        elif image_url:
-            await callback.message.delete()
-            await callback.message.answer_photo(
-                photo=image_url,
-                caption=preview_text,
-                reply_markup=content_preview(post.id),
-            )
-        else:
-            await callback.message.edit_text(
-                preview_text + "\n\n<i>Картинка не найдена — пост будет текстовым.</i>",
-                reply_markup=content_preview(post.id),
-            )
+        # Create post record
+        post = Post(
+            user_id=topic.user_id,
+            topic_id=topic.id,
+            text=text,
+            image_url=image_url,
+            status="draft",
+        )
+        session.add(post)
+        
+        # Increment daily counter
+        user_result = await session.execute(
+            select(User).where(User.id == topic.user_id)
+        )
+        user = user_result.scalar_one()
+        user.posts_today += 1
+        
+        await session.commit()
+        await session.refresh(post)
+    
+    # Show preview
+    preview_text = f"✨ <b>Превью поста</b>\n\n{text[:800]}"
+    if len(text) > 800:
+        preview_text += "\n\n<i>... (текст обрезан в превью)</i>"
+    
+    if image_bytes:
+        await callback.message.delete()
+        photo = BufferedInputFile(image_bytes, filename="preview.jpg")
+        await callback.message.answer_photo(
+            photo=photo,
+            caption=preview_text,
+            reply_markup=content_preview(post.id),
+        )
+    elif image_url:
+        await callback.message.delete()
+        await callback.message.answer_photo(
+            photo=image_url,
+            caption=preview_text,
+            reply_markup=content_preview(post.id),
+        )
+    else:
+        await callback.message.edit_text(
+            preview_text + "\n\n<i>Картинка не найдена — пост будет текстовым.</i>",
+            reply_markup=content_preview(post.id),
+        )
 
 
 @router.callback_query(F.data.startswith("post:publish:"))
@@ -288,5 +287,3 @@ async def regenerate_post(callback: CallbackQuery, bot: Bot):
             preview_text + "\n\n<i>Картинка не найдена — пост будет текстовым.</i>",
             reply_markup=content_preview(post.id),
         )
-
-
