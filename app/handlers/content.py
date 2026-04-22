@@ -67,7 +67,7 @@ async def start_generation(callback: CallbackQuery):
     )
 
 
-@router.callback_query(F.data.startswith("content:topic:"))
+@router.callback_query(lambda c: c.data and c.data.startswith("content:topic:"))
 async def generate_for_topic(callback: CallbackQuery, bot: Bot):
     topic_id = int(callback.data.split(":")[2])
     
