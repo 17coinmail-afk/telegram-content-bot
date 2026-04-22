@@ -50,16 +50,20 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Database init failed: {e}")
     
-    # Set webhook
+    # Set webhook with retry
     if config.WEBHOOK_HOST:
-        try:
-            await bot.set_webhook(
-                url=config.webhook_url,
-                drop_pending_updates=True,
-            )
-            logger.info(f"Webhook set to {config.webhook_url}")
-        except Exception as e:
-            logger.error(f"Webhook setup failed: {e}")
+        for attempt in range(3):
+            try:
+                await bot.set_webhook(
+                    url=config.webhook_url,
+                    drop_pending_updates=True,
+                )
+                logger.info(f"Webhook set to {config.webhook_url}")
+                break
+            except Exception as e:
+                logger.error(f"Webhook setup failed (attempt {attempt + 1}): {e}")
+                if attempt < 2:
+                    await asyncio.sleep(2)
     else:
         logger.info("WEBHOOK_HOST not set — webhook not configured")
     
